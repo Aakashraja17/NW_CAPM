@@ -1,0 +1,40 @@
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    controllerName="com.northui.nwui1.controller.View1">
+
+    <Page enableScrolling="false" class="sapUiContentPadding">
+
+        <VBox width="100%" height="100%">
+
+            <Select id="entitySelect" change=".onEntityChange">
+                <core:Item key="Products" text="Products"/>
+                <core:Item key="Orders" text="Orders"/>
+                <core:Item key="Customers" text="Customers"/>
+                <core:Item key="Categories" text="Categories"/>
+            </Select>
+
+            <!-- ✅ FULL SCREEN SCROLL AREA -->
+            <ScrollContainer
+                width="100%"
+                height="80%"
+                vertical="true"
+                horizontal="true"
+                class="sapUiSmallMarginTop">
+
+                <!-- ✅ ✅ FORCE TABLE TO BE WIDER + ALLOW HORIZONTAL SCROLL -->
+                <Table id="entityTable"
+                       width="200%"          
+                       fixedLayout="false"   
+                       autoPopinMode="false" 
+                       sticky="ColumnHeaders"
+                       class="sapUiResponsiveMargin" />
+
+            </ScrollContainer>
+
+        </VBox>
+
+    </Page>
+
+</mvc:View>

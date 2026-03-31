@@ -1,0 +1,131 @@
+_schema-version: 3.3.0
+ID: NW_CAPM
+description: A simple CAP project.
+version: 1.0.0
+modules:
+- name: NW_CAPM-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: NW_CAPM-destination
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+- name: NW_CAPM
+  type: approuter.nodejs
+  path: app/router
+  requires:
+  - name: srv-api
+    group: destinations
+    properties:
+      forwardAuthToken: true
+      name: srv-api
+      url: ~{srv-url}
+  - name: NW_CAPM-destination
+  - name: NW_CAPM-html5-runtime
+  provides:
+  - name: app-api
+    properties:
+      app-protocol: ${protocol}
+      app-uri: ${default-uri}
+  parameters:
+    disk-quota: 256M
+    keep-existing-routes: true
+    memory: 256M
+- name: NW_CAPM-app-deployer
+  type: com.sap.application.content
+  path: gen
+  requires:
+  - name: srv-api
+  - name: NW_CAPM-html5-repo-host
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+      content-target: true
+  build-parameters:
+    build-result: app/
+    requires:
+    - artifacts:
+      - comnorthwinduinwui.zip
+      name: comnorthwinduinwui
+      target-path: app/
+    - artifacts:
+      - comnorthuinwui1.zip
+      name: comnorthuinwui1
+      target-path: app/
+    - artifacts:
+      - comcapmlrlrpuicapm.zip
+      name: comcapmlrlrpuicapm
+      target-path: app/
+- name: comnorthwinduinwui
+  type: html5
+  path: app/nw_ui
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: comnorthuinwui1
+  type: html5
+  path: app/nw_ui1
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+- name: comcapmlrlrpuicapm
+  type: html5
+  path: app/lrp_uicapm
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: NW_CAPM-destination
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: false
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+    service: destination
+    service-plan: lite
+- name: NW_CAPM-html5-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-host
+- name: NW_CAPM-html5-runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production
